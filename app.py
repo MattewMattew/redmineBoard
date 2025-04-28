@@ -204,10 +204,15 @@ def index():
         
         # Добавляем время из трекера только если есть API-ключ и headers_tracker
         user_tracker_id = {
-            86: 109,
             369: 224,
-            297: 195,
-            338: 211
+            338: 211,
+            207: 189,
+            84: 91,
+            86: 109,
+            14: 14,
+            83: 101,
+            73: 86,
+            164: 268
         }.get(user_id, None)
         
         if user_tracker_id and headers_tracker:
