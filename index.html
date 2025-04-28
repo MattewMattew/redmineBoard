@@ -1,0 +1,730 @@
+<!DOCTYPE html>
+
+<html>
+<head>
+    <link rel="preconnect" href="https://fonts.gstatic.com">
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap" rel="stylesheet">
+    <title>Недельная статистика</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+</head>
+<body style="font-family: 'Roboto', sans-serif; background:rgb(230, 230, 230);">
+    {# <pre> 
+        {{issues_closed}}
+        {{issues_open + issues_closed}}
+        {{tickets_closed}}
+        {{issues_per_last_week_closed}}
+        
+    </pre> #}
+    {# <pre>
+        {{issues_open_count}}
+    </pre> #}
+    <table style="width: 100%;">
+        <tr>
+            <td style="padding: 5px;">
+                <div style="position: relative; height: 700px; width: 550px">
+                    <canvas style="background: rgb(245, 245, 245); border-radius: 25px; box-shadow: rgba(0, 0, 0, 0.1) 0px 0px 5px 0px;" id="ticket-chart"></canvas>
+                </div>
+            </td>
+            <td style="padding: 5px;">
+                <div style="position: relative; height: 700px; width: 100%;">
+                    <canvas style="background: rgb(245, 245, 245); border-radius: 25px; box-shadow: rgba(0, 0, 0, 0.1) 0px 0px 5px 0px;" id="ticket3-chart"></canvas>
+                </div>
+            </td>
+        </tr>
+    </table>
+    <div style="background: rgb(245, 245, 245); border-radius: 25px;">
+        <details class="details">
+            <summary class="details__title"><span style="padding-left: 1%;">Открыто</span> <span style="color: gray; font-size: 14px">| Общее количество открытых тикетов: {{ issues_current_open|length }}</span></summary>
+            <div class="details__content">
+                <nav>
+                    {% for issue in issues_current_open %}
+                        <a href="https://helpdesk.fenix-it.ru/issues/{{issue.id}}" target="_blank" 
+                        rel="noopener noreferrer" class="s13" data-hover="#{{issue.id}}" 
+                        style="margin: 11px; padding-bottom: 5px; padding-top: 5px;">
+                            <b><span>#{{issue.id}}</span></b></a>
+                        {% if issue.priority == 4 %}
+                            <span style="border: 2px solid lightgray; background: lightgray; border-radius: 25px; padding: 5px">Минимальный</span>
+                        {% endif %}
+                        {% if issue.priority == 1 %}
+                            <span style="border: 2px solid rgb(156, 156, 156); background: rgb(156, 156, 156); color: #fff; border-radius: 25px; padding: 5px">Низкий</span>
+                        {% endif %}
+                        {% if issue.priority == 2 %}
+                            <span style="border: 2px solid lightblue; background: lightblue; border-radius: 25px; padding: 5px">Средний</span>
+                        {% endif %}
+                        {% if issue.priority == 3 %}
+                            <span style="border: 2px solid #FF8488; background: #FF8488; border-radius: 25px; padding: 5px">Высокий</span>
+                        {% endif %}
+                        {% if issue.priority == 5 %}
+                            <span style="border: 2px solid #8D272B; background: #8D272B; color: #fff; border-radius: 25px; padding: 5px">Наивысший</span>
+                        {% endif %}
+                        {% if issue.priority == 11 %}
+                        <span style="border: 2px solid #1C0708; background: #1C0708; color: #fff; border-radius: 25px; padding: 5px">Аварийный</span>
+                        {% endif %}
+                        {% if issue.status == 'В очереди на выполнение' %}
+                            <span style="border: 2px solid rgba(255, 99, 132, 0.2); background: rgba(255, 99, 132, 0.2); border-radius: 25px; padding: 5px">В очереди на выполнение</span>
+                        {% endif %}
+                        {% if issue.status == 'В работе группы разработки' %}
+                            <span style="border: 2px solid rgba(54, 162, 235, 0.2); background: rgba(54, 162, 235, 0.2); border-radius: 25px; padding: 5px">В работе группы разработки</span>
+                        {% endif %}
+                        {% if issue.status == 'В работе инженера сопровождения' %}
+                            <span style="border: 2px solid rgba(0, 0, 0, 0.2); background: rgba(0, 0, 0, 0.2); border-radius: 25px; padding: 5px">В работе инженера сопровождения</span>
+                        {% endif %}
+                        {% if issue.status == 'Запрос информации' %}
+                            <span style="border: 2px solid rgba(75, 192, 192, 0.2); background: rgba(75, 192, 192, 0.2); border-radius: 25px; padding: 5px">Запрос информации</span>
+                        {% endif %}
+                        {% if issue.status == 'Запрос подтверждения' %}
+                            <span style="border: 2px solid rgba(153, 102, 255, 0.2); background: rgba(153, 102, 255, 0.2); border-radius: 25px; padding: 5px">Запрос подтверждения</span>
+                        {% endif %}
+                        {% if issue.status == 'Новый' %}
+                        <span style="border: 2px solid rgba(220, 220, 220, 0.2); background: rgba(220, 220, 220, 0.2); border-radius: 25px; padding: 5px">Новый</span>
+                        {% endif %}
+                        {{issue.subject}} <span style="color: gray; font-size: 14px">| Назначена: <b>{{issue.assigned_to}}</b></span>
+                        <br>                      
+                    {% endfor %}
+                </nav>
+            </div>
+        </details>
+    </div>
+    <table style="width: 100%;">
+        <tr>
+            <td style="padding: 5px;">
+                <div style="position: relative; height: 700px; width: 100%;">
+                    <canvas style="background: rgb(245, 245, 245); border-radius: 25px; box-shadow: rgba(0, 0, 0, 0.1) 0px 0px 5px 0px;" id="ticket6-chart"></canvas>
+                </div>
+            </td>
+        </tr>
+    </table>
+    <table>
+        <tr>
+            <td style="padding: 5px; height: 700px; width: 33%">
+                <div style="position: relative; height: 700px; width: 100%">
+                    <canvas style="background: rgb(245, 245, 245); border-radius: 25px; box-shadow: rgba(0, 0, 0, 0.1) 0px 0px 5px 0px;" id="ticket2-chart"></canvas>
+                </div>
+            </td>
+            <td style="padding: 5px; height: 700px; width: 33%">
+                <div style="position: relative; height: 700px; width: 100%">
+                    <canvas style="background: rgb(245, 245, 245); border-radius: 25px; box-shadow: rgba(0, 0, 0, 0.1) 0px 0px 5px 0px;" id="ticket4-chart"></canvas>
+                </div>
+            </td>
+            <td style="padding: 5px; height: 700px; width: 33%">
+                <div style="position: relative; height: 700px; width: 100%">
+                    <canvas style="background: rgb(245, 245, 245); border-radius: 25px; box-shadow: rgba(0, 0, 0, 0.1) 0px 0px 5px 0px;" id="ticket5-chart"></canvas>
+                </div>
+            </td>
+        </tr>
+    </table>
+    <div style="background: rgb(245, 245, 245); border-radius: 25px;">
+        <details class="details">
+            <summary class="details__title"><span style="padding-left: 1%;">Выполненные</span> <span style="color: gray; font-size: 14px">| Общее количество тикетов: {{issues|length}}</span></summary>
+            <div class="details__content">
+                {% for user in users %}
+                    <details class="details">
+                        <summary class="details__title"><span style="padding-left: 1%;">{{user.lastname}} {{user.firstname}} </span> <span style="color: gray; font-size: 14px">| Количество тикетов: {{user.count_tickets}}</span></summary>
+                        <div class="details__content">
+                            <nav>
+                                {% for issue in issues %}
+                                    {% for custom_field in issue['custom_fields'] %}
+                                        {% if custom_field.name == "Ответственный" %}
+                                            {% if custom_field.value == user.id|string %}
+                                            <a href="https://helpdesk.fenix-it.ru/issues/{{issue.id}}" target="_blank" rel="noopener noreferrer" class="s13" data-hover="#{{issue.id}}" style="margin: 11px; padding-bottom: 5px; padding-top: 5px;">
+                                                <b><span>#{{issue.id}}</span></b></a>
+                                                {% if issue.priority == 4 %}
+                                                    <span style="border: 2px solid lightgray; background: lightgray; border-radius: 25px; padding: 5px">Минимальный</span>
+                                                {% endif %}
+                                                {% if issue.priority == 1 %}
+                                                    <span style="border: 2px solid rgb(156, 156, 156); background: rgb(156, 156, 156); color: #fff; border-radius: 25px; padding: 5px">Низкий</span>
+                                                {% endif %}
+                                                {% if issue.priority == 2 %}
+                                                    <span style="border: 2px solid lightblue; background: lightblue; border-radius: 25px; padding: 5px">Средний</span>
+                                                {% endif %}
+                                                {% if issue.priority == 3 %}
+                                                    <span style="border: 2px solid #FF8488; background: #FF8488; border-radius: 25px; padding: 5px">Высокий</span>
+                                                {% endif %}
+                                                {% if issue.priority == 5 %}
+                                                    <span style="border: 2px solid #8D272B; background: #8D272B; color: #fff; border-radius: 25px; padding: 5px">Наивысший</span>
+                                                {% endif %}
+                                                {% if issue.priority == 11 %}
+                                                <span style="border: 2px solid #1C0708; background: #1C0708; color: #fff; border-radius: 25px; padding: 5px">Аварийный</span>
+                                                {% endif %}
+                                                {{issue.subject}} 
+                                                <br>
+                                            {% endif %}
+                                        {% endif %}
+                                    {% endfor %}
+                                {% endfor %}
+                                
+                            </nav>
+                        </div>
+                    </details>
+                {% endfor %}
+            </div>
+        </details>
+    </div>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@2.9.4/dist/Chart.min.js"></script>
+    <!-- Add a chart to display the number of tickets for each user -->
+
+    <script>
+        const issueses = {{ issues_closed + issues_open_count }};
+        const ticketsClosed = {{ tickets_closed }};
+        // Create a new chart
+        const ctx = document.getElementById('ticket-chart').getContext('2d');
+        const chart = new Chart(ctx, {
+            type: 'pie',
+            data: {
+            labels: ['Поступившие тикеты', 'Закрытые тикеты'],
+            datasets: [{
+                label: 'Тикеты и Issues',
+                data: [issueses, ticketsClosed],
+                backgroundColor: [
+                    'rgba(54, 162, 235, 0.2)',
+                    'rgba(255, 99, 132, 0.2)',
+                ],
+                borderColor: [
+                    'rgba(54, 162, 235, 1)',
+                    'rgba(255, 99, 132, 1)'
+                ],
+                borderWidth: 1
+            }]
+            },
+            options: {
+                legend: {
+                    display: true,
+                },
+                layout: {
+                    padding: 5,
+                },
+                title: {
+                    display: true,
+                    text: 'Закрытые и поступившие тикеты',
+                    fontSize: 18
+                },
+                tooltips: {
+                    yAlign: 'top',
+                    xAlign: 'center',
+                    titleAlign: 'center',
+                    position: 'nearest',
+                    enabled: true
+                },
+                responsive: true,
+                maintainAspectRatio: false,
+                hover: {
+                    animationDuration: 0
+                },
+                animation: {
+                    duration: 1,
+                    onComplete: function () {
+                        var chartInstance = this.chart,
+                        ctx = chartInstance.ctx;
+                        ctx.font = Chart.helpers.fontString(24, Chart.defaults.global.defaultFontStyle, Chart.defaults.global.defaultFontFamily);
+                        ctx.textAlign = 'center';
+                        ctx.textBaseline = 'bottom';
+
+                        this.data.datasets.forEach(function (dataset, i) {
+                            var meta = chartInstance.controller.getDatasetMeta(i);
+                            meta.data.forEach(function (bar, index) {
+                                var data = dataset.data[index];
+                                if(index == 0){
+                                    ctx.fillText(data, bar._model.x+30, bar._model.y);
+                                }
+                                else{
+                                    ctx.fillText(data, bar._model.x-30, bar._model.y);
+                                }
+                            });
+                        });
+                    }
+                }
+            }
+        });
+        // Fill the chart with data
+        chart.update();
+
+        // Get the users and issues data
+        const usersData = {{ users | tojson }};
+
+        // Create a new chart
+        const ctx2 = document.getElementById('ticket2-chart').getContext('2d');
+        const chart2 = new Chart(ctx2, {
+            type: 'bar',
+            data: {
+                labels: [],
+                datasets: [{
+                    label: 'Количество тикетов',
+                    data: [],
+                    backgroundColor: [
+                        'rgba(0, 138, 30, 0.2)',
+                        'rgba(101, 0, 138, 0.2)',
+                        'rgba(0, 0, 0, 0.2)',
+                        'rgba(75, 192, 192, 0.2)',
+                        'rgba(153, 102, 255, 0.2)'
+                    ],
+                    borderColor: [
+                        'rgba(0, 138, 30, 1)',
+                        'rgba(101, 0, 138, 1)',
+                        'rgba(0, 0, 0, 1)',
+                        'rgba(75, 192, 192, 1)',
+                        'rgba(153, 102, 255, 1)'
+                    ],
+                    borderWidth: 1
+                }]
+            },
+            options: {
+                scales: {
+                    yAxes: [{
+                        ticks: {beginAtZero: true}
+                    }]
+                },
+                legend: {
+                    display: false,
+                },
+                layout: {
+                    padding: 5,
+                },
+                title: {
+                    display: true,
+                    text: 'Количество тикетов выполнено сотрудниками',
+                    fontSize: 18
+                },
+                responsive: true,
+                maintainAspectRatio: false,
+                tooltips: {
+                    yAlign: 'top',
+                    xAlign: 'center',
+                    titleAlign: 'center',
+                    position: 'nearest',
+                    callbacks: {
+                      title: function(tooltipItem, data) {
+                        return data['labels'][tooltipItem[0]['index']];
+                      },
+                      label: function(tooltipItem, data) {
+                        return;
+                      }
+                    },
+                    displayColors: true
+                },
+                hover: {
+                    animationDuration: 0
+                },
+                animation: {
+                    duration: 1,
+                    onComplete: function () {
+                        var chartInstance = this.chart,
+                            ctx = chartInstance.ctx;
+                        ctx.font = Chart.helpers.fontString(16, Chart.defaults.global.defaultFontStyle, Chart.defaults.global.defaultFontFamily);
+                        ctx.textAlign = 'center';
+                        ctx.textBaseline = 'bottom';
+
+                        this.data.datasets.forEach(function (dataset, i) {
+                            var meta = chartInstance.controller.getDatasetMeta(i);
+                            meta.data.forEach(function (bar, index) {
+                                var data = dataset.data[index];
+                                ctx.fillText(data, bar._model.x, bar._model.y - 5);
+                            });
+                        });
+                    }
+                }
+            }
+        });
+
+        // Fill the chart with data
+        usersData.forEach((user) => {
+            const ticketsCount = user.count_tickets;
+            chart2.data.datasets[0].data.push(ticketsCount);
+            chart2.data.labels.push(user.lastname + ' ' + user.firstname);
+        });
+        limit = Math.round(Math.max.apply(null ,chart2.data.datasets[0].data)/10)*10;
+        if(limit > 100){
+            chart2.options.scales.yAxes[0].ticks.max = limit + 20;
+        }
+        else{
+            chart2.options.scales.yAxes[0].ticks.max = limit + 5;
+        }
+        chart2.update();
+
+        // Get the users and issues data
+        const issuesStatuses = {{ issues_per_open | tojson }};
+
+        // Create a new chart
+        const ctx3 = document.getElementById('ticket3-chart').getContext('2d');
+        const chart3 = new Chart(ctx3, {
+            type: 'bar',
+            data: {
+                labels: [],
+                datasets: [{
+                    label: 'Количество тикетов',
+                    data: [],
+                    backgroundColor: [
+                        'rgba(54, 162, 235, 0.2)',
+                        'rgba(101, 0, 138, 0.2)',
+                        'rgba(0, 0, 0, 0.2)',
+                        'rgba(75, 192, 192, 0.2)',
+                        'rgba(153, 102, 255, 0.2)',
+                        'rgba(220, 220, 220, 0.2)'
+                    ],
+                    borderColor: [
+                        'rgba(54, 162, 235, 1)',
+                        'rgba(101, 0, 138, 1)',
+                        'rgba(0, 0, 0, 1)',
+                        'rgba(75, 192, 192, 1)',
+                        'rgba(153, 102, 255, 1)',
+                        'rgba(220, 220, 220, 1)'
+                    ],
+                    borderWidth: 1
+                }]
+            },
+            options: {
+                scales: {
+                    yAxes: [{
+                        ticks: {
+                            beginAtZero: true
+                        }
+                    }]
+                },
+                legend: {
+                    display: false,
+                },
+                layout: {
+                    padding: 5,
+                },
+                responsive: true,
+                title: {
+                    display: true,
+                    text: 'Открыто',
+                    fontSize: 18
+                },
+                maintainAspectRatio: false,
+                tooltips: {
+                    yAlign: 'top',
+                    xAlign: 'center',
+                    titleAlign: 'center',
+                    position: 'nearest',
+                    callbacks: {
+                      title: function(tooltipItem, data) {
+                        return data['labels'][tooltipItem[0]['index']];
+                      },
+                      label: function(tooltipItem, data) {
+                        return;
+                      }
+                    },
+                    displayColors: true
+                },
+                hover: {
+                    animationDuration: 0
+                },
+                animation: {
+                    duration: 1,
+                    onComplete: function () {
+                        var chartInstance = this.chart,
+                            ctx = chartInstance.ctx;
+                        ctx.font = Chart.helpers.fontString(16, Chart.defaults.global.defaultFontStyle, Chart.defaults.global.defaultFontFamily);
+                        ctx.textAlign = 'center';
+                        ctx.textBaseline = 'bottom';
+
+                        this.data.datasets.forEach(function (dataset, i) {
+                            var meta = chartInstance.controller.getDatasetMeta(i);
+                            meta.data.forEach(function (bar, index) {
+                                var data = dataset.data[index];
+                                ctx.fillText(data, bar._model.x, bar._model.y - 5);
+                            });
+                        });
+                    }
+                }
+            }
+        });
+        for (const [key, value] of Object.entries(issuesStatuses)) {
+            chart3.data.labels.push(key);
+            chart3.data.datasets[0].data.push(value);
+        }
+        limit = Math.round(Math.max.apply(null ,chart3.data.datasets[0].data)/10)*10;
+        chart3.options.scales.yAxes[0].ticks.max = limit + 5;
+        chart3.update();
+
+        const ctx4 = document.getElementById('ticket4-chart').getContext('2d');
+        const chart4 = new Chart(ctx4, {
+            type: 'horizontalBar',
+            data: {
+                labels: [],
+                datasets: [{
+                    label: 'Количество тикетов',
+                    data: [],
+                    backgroundColor: [
+                        'rgba(0, 138, 30, 0.2)',
+                        'rgba(101, 0, 138, 0.2)',
+                        'rgba(0, 0, 0, 0.2)',
+                        'rgba(75, 192, 192, 0.2)',
+                        'rgba(153, 102, 255, 0.2)'
+                    ],
+                    borderColor: [
+                        'rgba(0, 138, 30, 1)',
+                        'rgba(101, 0, 138, 1)',
+                        'rgba(0, 0, 0, 1)',
+                        'rgba(75, 192, 192, 1)',
+                        'rgba(153, 102, 255, 1)'
+                    ],
+                    borderWidth: 1
+                }]
+            },
+            options: {
+                scales: {
+                    xAxes: [{
+                        ticks: {
+                            beginAtZero:true,
+                        },
+                        stacked: true
+                    }],
+                    yAxes: [{
+                        stacked: true
+                    }]
+                },
+                legend: {
+                    display: false,
+                },
+                layout: {
+                    padding: 5,
+                },
+                responsive: true,
+                title: {
+                    display: true,
+                    text: 'Трудозатраты',
+                    fontSize: 18
+                },
+                maintainAspectRatio: false,
+                tooltips: {
+                    yAlign: 'top',
+                    xAlign: 'center',
+                    titleAlign: 'center',
+                    position: 'nearest',
+                    callbacks: {
+                      title: function(tooltipItem, data) {
+                        return data['labels'][tooltipItem[0]['index']];
+                      },
+                      label: function(tooltipItem, data) {
+                        return;
+                      }
+                    },
+                    displayColors: true
+                },
+                hover: {
+                    animationDuration: 0
+                },
+                animation: {
+                    duration: 1,
+                    onComplete: function () {
+                        var chartInstance = this.chart,
+                            ctx = chartInstance.ctx;
+                        ctx.font = Chart.helpers.fontString(16, Chart.defaults.global.defaultFontStyle, Chart.defaults.global.defaultFontFamily);
+                        ctx.textAlign = 'center';
+                        ctx.textBaseline = 'bottom';
+
+                        this.data.datasets.forEach(function (dataset, i) {
+                            var meta = chartInstance.controller.getDatasetMeta(i);
+                            meta.data.forEach(function (bar, index) {
+                                var data = dataset.data[index];
+                                ctx.fillText(data, bar._model.x - 30, bar._model.y);
+                            });
+                        });
+                    }
+                }
+            }
+        });
+
+        // Fill the chart with data
+        usersData.forEach((user) => {
+            const time_entries = user.time_entries;
+            chart4.data.datasets[0].data.push(time_entries.toFixed(2));
+            chart4.data.labels.push(user.lastname + ' ' + user.firstname);
+        });
+        limit = Math.round(Math.max.apply(null ,chart4.data.datasets[0].data)/10)*10;
+        chart4.options.scales.yAxes[0].ticks.max = limit + 5;
+        chart4.update();
+
+        const ctx5 = document.getElementById('ticket5-chart').getContext('2d');
+        const chart5 = new Chart(ctx5, {
+            type: 'bar',
+            data: {
+                labels: [],
+                datasets: [{
+                    label: 'Количество тикетов',
+                    data: [],
+                    backgroundColor: [
+                        'rgba(0, 138, 30, 0.2)',
+                        'rgba(101, 0, 138, 0.2)',
+                        'rgba(0, 0, 0, 0.2)',
+                        'rgba(75, 192, 192, 0.2)',
+                        'rgba(153, 102, 255, 0.2)'
+                    ],
+                    borderColor: [
+                        'rgba(0, 138, 30, 1)',
+                        'rgba(101, 0, 138, 1)',
+                        'rgba(0, 0, 0, 1)',
+                        'rgba(75, 192, 192, 1)',
+                        'rgba(153, 102, 255, 1)'
+                    ],
+                    borderWidth: 1
+                }]
+            },
+            options: {
+                scales: {
+                    yAxes: [{
+                        ticks: {beginAtZero: true}
+                    }]
+                },
+                legend: {
+                    display: false,
+                },
+                layout: {
+                    padding: 5,
+                },
+                responsive: true,
+                title: {
+                    display: true,
+                    text: 'Количество тикетов на руках',
+                    fontSize: 18
+                },
+                maintainAspectRatio: false,
+                tooltips: {
+                    yAlign: 'top',
+                    xAlign: 'center',
+                    titleAlign: 'center',
+                    position: 'nearest',
+                    callbacks: {
+                      title: function(tooltipItem, data) {
+                        return data['labels'][tooltipItem[0]['index']];
+                      },
+                      label: function(tooltipItem, data) {
+                        return;
+                      }
+                    },
+                    displayColors: true
+                },
+                hover: {
+                    animationDuration: 0
+                },
+                animation: {
+                    duration: 1,
+                    onComplete: function () {
+                        var chartInstance = this.chart,
+                            ctx = chartInstance.ctx;
+                        ctx.font = Chart.helpers.fontString(16, Chart.defaults.global.defaultFontStyle, Chart.defaults.global.defaultFontFamily);
+                        ctx.textAlign = 'center';
+                        ctx.textBaseline = 'bottom';
+
+                        this.data.datasets.forEach(function (dataset, i) {
+                            var meta = chartInstance.controller.getDatasetMeta(i);
+                            meta.data.forEach(function (bar, index) {
+                                var data = dataset.data[index];
+                                ctx.fillText(data, bar._model.x, bar._model.y - 5);
+                            });
+                        });
+                    }
+                }
+            }
+        });
+
+        // Fill the chart with data
+        usersData.forEach((user) => {
+            const current_tickets_count = user.current_tickets_count;
+            chart5.data.datasets[0].data.push(current_tickets_count);
+            chart5.data.labels.push(user.lastname + ' ' + user.firstname);
+        });
+        limit = Math.round(Math.max.apply(null ,chart5.data.datasets[0].data)/10)*10;
+        chart5.options.scales.yAxes[0].ticks.max = limit + 5;
+        chart5.update();
+
+        
+        const ticketsDataOnWeek = {{ tickets_data_on_week | tojson }};
+
+        // Create a new chart
+        const ctx6 = document.getElementById('ticket6-chart').getContext('2d');
+        const chart6 = new Chart(ctx6, {
+            type: 'line',
+            data: {
+                labels: [],
+                datasets: [{
+                    label: 'Количество тикетов',
+                    data: [],
+                    backgroundColor: [
+                        'rgba(0, 138, 30, 0.2)',
+                    ],
+                    borderColor: [
+                        'rgba(0, 138, 30, 1)',
+                    ],
+                    lineTension : 0.2,
+                    borderWidth: 1
+                }]
+            },
+            options: {
+                scales: {
+                    yAxes: [{
+                        ticks: {
+                            beginAtZero: true
+                        }
+                    }]
+                },
+                legend: {
+                    display: false,
+                },
+                layout: {
+                    padding: 5,
+                },
+                responsive: true,
+                title: {
+                    display: true,
+                    text: 'Динамика поступления тикетов',
+                    fontSize: 18
+                },
+                maintainAspectRatio: false,
+                tooltips: {
+                    yAlign: 'top',
+                    xAlign: 'center',
+                    titleAlign: 'center',
+                    position: 'nearest',
+                    callbacks: {
+                      title: function(tooltipItem, data) {
+                        return data['labels'][tooltipItem[0]['index']];
+                      },
+                      label: function(tooltipItem, data) {
+                        return;
+                      }
+                    },
+                    displayColors: true
+                },
+                hover: {
+                    animationDuration: 0
+                },
+                animation: {
+                    duration: 1,
+                    onComplete: function () {
+                        var chartInstance = this.chart,
+                            ctx = chartInstance.ctx;
+                        ctx.font = Chart.helpers.fontString(16, Chart.defaults.global.defaultFontStyle, Chart.defaults.global.defaultFontFamily);
+                        ctx.textAlign = 'center';
+                        ctx.textBaseline = 'bottom';
+
+                        this.data.datasets.forEach(function (dataset, i) {
+                            var meta = chartInstance.controller.getDatasetMeta(i);
+                            meta.data.forEach(function (bar, index) {
+                                var data = dataset.data[index];
+                                ctx.fillStyle = "#414141";
+                                ctx.fillText(data, bar._model.x, bar._model.y - 5);
+                            });
+                        });
+                    }
+                }
+            }
+        });
+        console.log(ticketsDataOnWeek)
+        for (const item of ["Понедельник", "Вторник", "Среда", "Четверг", "Пятница", "Суббота", "Воскресенье"]){
+            for (const [key, value] of Object.entries(ticketsDataOnWeek)) {
+                if(key == item){
+                    chart6.data.labels.push(key);
+                    chart6.data.datasets[0].data.push(value);
+                    break;
+                }
+            }
+        }
+        limit = Math.round(Math.max.apply(null ,chart6.data.datasets[0].data)/10)*10;
+        chart6.options.scales.yAxes[0].ticks.max = limit + 5;
+        chart6.update();
+    </script>
+</body>
+</html>

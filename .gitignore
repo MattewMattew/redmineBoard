@@ -1,0 +1,6 @@
+# Исключаем папку node_modules
+node_modules/
+
+# Исключаем секретные ключи
+helpdesk_key.txt
+tracker_key.txt

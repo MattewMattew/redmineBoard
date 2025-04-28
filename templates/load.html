@@ -1,0 +1,269 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ввод API-ключей</title>
+    <style>
+        body {
+            font-family: 'Roboto', sans-serif;
+            background: rgb(230, 230, 230);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+            padding: 20px;
+        }
+        
+        .container {
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+            padding: 30px;
+            max-width: 600px;
+            width: 100%;
+        }
+        
+        h1 {
+            color: #4361ee;
+            text-align: center;
+            margin-bottom: 30px;
+            font-weight: 600;
+        }
+        
+        .form-group {
+            margin-bottom: 20px;
+        }
+        
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 500;
+            color: #212529;
+        }
+        
+        input[type="text"] {
+            width: 100%;
+            padding: 12px 15px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            font-size: 16px;
+            transition: all 0.3s ease;
+        }
+        
+        input[type="text"]:focus {
+            border-color: #4361ee;
+            box-shadow: 0 0 0 3px rgba(67, 97, 238, 0.2);
+            outline: none;
+        }
+        
+        .file-info {
+            font-size: 14px;
+            color: #6c757d;
+            margin-top: 5px;
+        }
+        
+        .file-exists {
+            color: #20c997;
+            font-weight: 500;
+        }
+        
+        .file-not-exists {
+            color: #f72585;
+        }
+        
+        .btn {
+            display: inline-block;
+            background: #4361ee;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-align: center;
+            width: 100%;
+            margin-top: 10px;
+        }
+        
+        .btn:hover {
+            background: #3a0ca3;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(67, 97, 238, 0.3);
+        }
+        
+        .btn:active {
+            transform: translateY(0);
+        }
+        
+        .cssload-loader {
+            width: 146px;
+            height: 146px;
+            line-height: 146px;
+            margin: 30px auto;
+            position: relative;
+            box-sizing: border-box;
+            text-align: center;
+            z-index: 0;
+            text-transform: uppercase;
+        }
+        
+        .cssload-loader:before,
+        .cssload-loader:after {
+            opacity: 0;
+            box-sizing: border-box;
+            content: "\0020";
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            border-radius: 97px;
+            border: 5px solid rgb(0,0,0);
+            box-shadow: 0 0 49px rgb(0,0,0), inset 0 0 49px rgb(0,0,0);
+        }
+        
+        .cssload-loader:after {
+            z-index: 1;
+            animation: cssload-gogoloader 2.3s infinite 1.15s;
+        }
+        
+        .cssload-loader:before {
+            z-index: 2;
+            animation: cssload-gogoloader 2.3s infinite;
+        }
+        
+        @keyframes cssload-gogoloader {
+            0% {
+                transform: scale(0);
+                opacity: 0;
+            }
+            50% {
+                opacity: 1;
+            }
+            100% {
+                transform: scale(1);
+                opacity: 0;
+            }
+        }
+        
+        .hidden {
+            display: none;
+        }
+    </style>
+    <link rel="preconnect" href="https://fonts.gstatic.com">
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+    <div class="container" id="form-container">
+        <h1>Введите API-ключи</h1>
+        
+        <div class="form-group">
+            <label for="helpdesk-key">API-ключ Helpdesk</label>
+            <input type="text" id="helpdesk-key" placeholder="Введите API-ключ для Helpdesk">
+            <div class="file-info" id="helpdesk-file-info"></div>
+        </div>
+        
+        <div class="form-group">
+            <label for="tracker-key">API-ключ Tracker</label>
+            <input type="text" id="tracker-key" placeholder="Введите API-ключ для Tracker">
+            <div class="file-info" id="tracker-file-info"></div>
+        </div>
+        
+        <button class="btn" id="continue-btn">Продолжить</button>
+    </div>
+    
+    <div class="container hidden" id="loading-container">
+        <div class="cssload-loader"></div>
+        <div id="idClock" style="text-align: center; font-size: 18px; margin-top: 20px;">0.00</div>
+    </div>
+    
+    <script>
+        // Проверяем наличие файлов с ключами
+        function checkApiKeys() {
+            fetch('/check-api-keys')
+                .then(response => response.json())
+                .then(data => {
+                    const helpdeskInfo = document.getElementById('helpdesk-file-info');
+                    const trackerInfo = document.getElementById('tracker-file-info');
+                    
+                    if (data.helpdesk_exists) {
+                        helpdeskInfo.textContent = 'Файл helpdesk_key.txt найден, ключ сохранён';
+                        helpdeskInfo.classList.add('file-exists');
+                        document.getElementById('helpdesk-key').placeholder = 'Ключ уже сохранён в файле';
+                    } else {
+                        helpdeskInfo.textContent = 'Файл helpdesk_key.txt не найден';
+                        helpdeskInfo.classList.add('file-not-exists');
+                    }
+                    
+                    if (data.tracker_exists) {
+                        trackerInfo.textContent = 'Файл tracker_key.txt найден, ключ сохранён';
+                        trackerInfo.classList.add('file-exists');
+                        document.getElementById('tracker-key').placeholder = 'Ключ уже сохранён в файле';
+                    } else {
+                        trackerInfo.textContent = 'Файл tracker_key.txt не найден';
+                        trackerInfo.classList.add('file-not-exists');
+                    }
+                })
+                .catch(error => {
+                    console.error('Ошибка при проверке API-ключей:', error);
+                });
+        }
+        
+        // Отправляем ключи на сервер
+        function submitApiKeys() {
+            const helpdeskKey = document.getElementById('helpdesk-key').value;
+            const trackerKey = document.getElementById('tracker-key').value;
+            
+            fetch('/save-api-keys', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    helpdesk_key: helpdeskKey,
+                    tracker_key: trackerKey
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    // Показываем анимацию загрузки
+                    document.getElementById('form-container').classList.add('hidden');
+                    document.getElementById('loading-container').classList.remove('hidden');
+                    
+                    // Запускаем секундомер
+                    let milliseconds = 0;
+                    let display = document.getElementById('idClock');
+                    
+                    setInterval(function() {
+                        milliseconds += 10;
+                        display.innerHTML = (milliseconds / 1000).toFixed(2);
+                    }, 10);
+                    
+                    // Перенаправляем на страницу отчета
+                    setTimeout(function() {
+                        window.location.href = "/report";
+                    }, 2000);
+                } else {
+                    alert('Ошибка при сохранении ключей: ' + data.message);
+                }
+            })
+            .catch(error => {
+                console.error('Ошибка:', error);
+                alert('Произошла ошибка при отправке ключей');
+            });
+        }
+        
+        // Проверяем ключи при загрузке страницы
+        document.addEventListener('DOMContentLoaded', checkApiKeys);
+        
+        // Обработчик кнопки "Продолжить"
+        document.getElementById('continue-btn').addEventListener('click', submitApiKeys);
+    </script>
+</body>
+</html>

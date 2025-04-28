@@ -1,0 +1,1362 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Недельная статистика тикетов</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&family=Montserrat:wght@400;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        :root {
+            --primary-color: #4361ee;
+            --secondary-color: #3f37c9;
+            --accent-color: #4895ef;
+            --success-color: #4cc9f0;
+            --danger-color: #f72585;
+            --warning-color: #f8961e;
+            --info-color: #43aa8b;
+            --light-color: #f8f9fa;
+            --dark-color: #212529;
+            --gray-color: #6c757d;
+            --border-radius: 12px;
+            --box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+            --transition: all 0.3s ease;
+            --chart-height: 400px;
+        }
+        
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+        
+        body {
+            font-family: 'Roboto', sans-serif;
+            background-color: #f5f7fa;
+            color: var(--dark-color);
+            line-height: 1.6;
+            padding: 20px;
+        }
+
+        /* Стили для заголовка */
+        .completed-tickets-header {
+            background: #4361ee;
+            color: white;
+            padding: 15px 20px;
+            border-radius: 8px 8px 0 0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 2px;
+        }
+
+        .completed-tickets-header .header-title {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .completed-tickets-header h2 {
+            margin: 0;
+            font-size: 18px;
+            font-weight: 600;
+        }
+
+        .completed-tickets-header .header-count {
+            font-size: 14px;
+            opacity: 0.9;
+        }
+        
+        /* Стили для списка пользователей */
+        .users-container {
+            background: white;
+            border-radius: 0 0 8px 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        
+        .user-card {
+            border-bottom: 1px solid #eee;
+        }
+        
+        .user-card:last-child {
+            border-bottom: none;
+        }
+        
+        .user-header {
+            padding: 15px 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            cursor: pointer;
+            transition: background 0.2s;
+            cursor: pointer;
+        }
+        
+        .user-header:hover {
+            background: #f8f9fa;
+        }
+        
+        .user-info {
+            display: flex;
+            gap: 15px;
+            align-items: center;
+        }
+        
+        .user-name {
+            font-weight: 500;
+        }
+        
+        .user-count {
+            color: #6c757d;
+            font-size: 14px;
+        }
+        
+        .toggle-icon {
+            transition: transform 0.3s;
+        }
+        
+        .user-issues {
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.3s ease;
+        }
+        
+        .user-issues.active {
+            max-height: none;
+            overflow: visible;
+        }
+
+        .container {
+            max-width: 1800px;
+            margin: 0 auto;
+        }
+        
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        
+        .header h1 {
+            font-family: 'Montserrat', sans-serif;
+            font-weight: 600;
+            color: var(--primary-color);
+            margin-bottom: 10px;
+        }
+        
+        .header p {
+            color: var(--gray-color);
+            font-size: 16px;
+        }
+        
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(500px, 1fr));
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+        
+        .card {
+            background: white;
+            border-radius: var(--border-radius);
+            box-shadow: var(--box-shadow);
+            padding: 20px;
+            transition: var(--transition);
+            height: calc(var(--chart-height) + 80px);
+        }
+        
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 6px 25px rgba(0, 0, 0, 0.1);
+        }
+        
+        .card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+            height: 40px;
+        }
+        
+        .card-title {
+            font-family: 'Montserrat', sans-serif;
+            font-weight: 600;
+            font-size: 18px;
+            color: var(--primary-color);
+        }
+        
+        .card-body {
+            position: relative;
+            height: var(--chart-height);
+        }
+        
+        .chart-container {
+            position: relative;
+            height: 100%;
+            width: 100%;
+        }
+        
+        /* Priority tags */
+        .priority-tag {
+            display: inline-block;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 500;
+            margin-right: 8px;
+            color: white;
+        }
+        
+        .priority-minimal { background: #6c757d; }
+        .priority-low { background: #20c997; }
+        .priority-medium { background: #0d6efd; }
+        .priority-high { background: #fd7e14; }
+        .priority-urgent { background: #dc3545; }
+        .priority-emergency { background: #6f42c1; }
+        
+        /* Status tag */
+        .status-tag {
+            display: inline-block;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 500;
+            background: rgba(108, 117, 125, 0.1);
+            color: var(--gray-color);
+        }
+        
+        /* Issues list */
+        .issues-container {
+            transition: height 0.3s ease;
+            overflow: hidden;
+            background: white;
+            border-radius: var(--border-radius);
+            box-shadow: var(--box-shadow);
+            margin-bottom: 20px;
+            overflow: hidden;
+        }
+        
+        .issues-header {
+            padding: 16px 20px;
+            background: var(--primary-color);
+            color: white;
+            cursor: pointer;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .issues-header:hover {
+            background: var(--secondary-color);
+        }
+        
+        .issues-header-title {
+            font-weight: 500;
+            font-size: 16px;
+        }
+        
+        .issues-header-count {
+            font-size: 14px;
+            opacity: 0.8;
+        }
+        
+        .issues-content {
+            padding: 0;
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.3s ease-out;
+        }
+        
+        .issues-list {
+            list-style: none;
+            padding: 15px 20px;
+        }
+        
+        .issue-item {
+            padding: 12px 0;
+            border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+        }
+        
+        .issue-item:last-child {
+            border-bottom: none;
+        }
+        
+        .issue-link {
+            color: var(--primary-color);
+            text-decoration: none;
+            font-weight: 500;
+            margin-right: 8px;
+            transition: var(--transition);
+        }
+        
+        .issue-link:hover {
+            color: var(--secondary-color);
+            text-decoration: underline;
+        }
+        
+        .issue-subject {
+            margin: 5px 0;
+        }
+        
+        .issue-assignee {
+            font-size: 13px;
+            color: var(--gray-color);
+        }
+
+        /* Стили для заголовка открытых тикетов */
+        .open-tickets-header {
+            background: #f72585; /* Другой цвет для отличия */
+            color: white;
+            padding: 15px 20px;
+            border-radius: 8px 8px 0 0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            cursor: pointer;
+        }
+        
+        .open-tickets-header .header-title {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .open-tickets-header h2 {
+            margin: 0;
+            font-size: 18px;
+            font-weight: 600;
+        }
+        
+        .open-tickets-header .header-count {
+            font-size: 14px;
+            opacity: 0.9;
+        }
+
+        /* Стили для проектов */
+        .project-section {
+            border-bottom: 1px solid #eee;
+        }
+
+        .project-section:last-child {
+            border-bottom: none;
+        }
+
+        .project-header {
+            padding: 15px 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            cursor: pointer;
+            transition: background 0.2s;
+            background-color: #f8f9fa;
+        }
+
+        .project-header:hover {
+            background-color: #e9ecef;
+        }
+
+        .project-info {
+            display: flex;
+            gap: 15px;
+            align-items: center;
+        }
+
+        .project-name {
+            font-weight: 500;
+            color: var(--primary-color);
+        }
+
+        .project-count {
+            color: var(--gray-color);
+            font-size: 14px;
+        }
+
+        .project-issues {
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.3s ease;
+            background-color: white;
+        }
+
+        .project-issues.active {
+            max-height: 1000px;
+        }
+        
+        /* Responsive adjustments */
+        @media (max-width: 1200px) {
+            .grid {
+                grid-template-columns: 1fr;
+            }
+        }
+        
+        @media (max-width: 768px) {
+            .card {
+                padding: 15px;
+                height: calc(var(--chart-height) + 60px);
+            }
+            
+            .card-title {
+                font-size: 16px;
+            }
+            
+            :root {
+                --chart-height: 350px;
+            }
+        }
+        
+        @media (max-width: 480px) {
+            :root {
+                --chart-height: 300px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header class="header">
+            <h1><i class="fas fa-chart-line"></i> Недельная статистика тикетов</h1>
+            <p>Обзор производительности и обработки запросов за последнюю неделю</p>
+        </header>
+        
+        <div class="grid">
+            <div class="card">
+                <div class="card-header">
+                    <h2 class="card-title">Закрытые и поступившие тикеты</h2>
+                </div>
+                <div class="card-body">
+                    <div class="chart-container">
+                        <canvas id="ticket-chart"></canvas>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="card">
+                <div class="card-header">
+                    <h2 class="card-title">Открытые тикеты по статусам</h2>
+                </div>
+                <div class="card-body">
+                    <div class="chart-container">
+                        <canvas id="ticket3-chart"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="completed-tickets-header" style="background: #f72585;">
+            <div class="header-title">
+                <i class="fas fa-exclamation-circle"></i>
+                <h2>Открытые тикеты по проектам</h2>
+            </div>
+            <div class="header-count">Всего: {{ issues_current_open|length }}</div>
+        </div>
+        
+        <div class="users-container" style="margin-bottom: 20px;">
+            <!-- Группировка тикетов по проектам -->
+            {% set projects = {} %}
+            {% for issue in issues_current_open %}
+                {% if issue.project.name not in projects %}
+                    {% set _ = projects.update({issue.project.name: []}) %}
+                {% endif %}
+                {% set _ = projects[issue.project.name].append(issue) %}
+            {% endfor %}
+            
+            <!-- Вывод проектов и их тикетов -->
+            {% for project_name, project_issues in projects.items() %}
+            <div class="user-card">
+                <div class="user-header" onclick="toggleUserIssues(this, 'project-{{ loop.index }}')">
+                    <div class="user-info">
+                        <span class="user-name">{{ project_name }}</span>
+                        <span class="user-count">{{ project_issues|length }} тикетов</span>
+                    </div>
+                    <i class="fas fa-chevron-down toggle-icon"></i>
+                </div>
+                
+                <div class="user-issues" id="project-{{ loop.index }}">
+                    <ul class="issues-list">
+                        {% for issue in project_issues %}
+                        <li class="issue-item">
+                            <a href="https://helpdesk.fenix-it.ru/issues/{{issue.id}}" target="_blank" class="issue-link">#{{issue.id}}</a>
+                            
+                            {% if issue.priority == 4 %}
+                                <span class="priority-tag priority-minimal">Минимальный</span>
+                            {% endif %}
+                            {% if issue.priority == 1 %}
+                                <span class="priority-tag priority-low">Низкий</span>
+                            {% endif %}
+                            {% if issue.priority == 2 %}
+                                <span class="priority-tag priority-medium">Средний</span>
+                            {% endif %}
+                            {% if issue.priority == 3 %}
+                                <span class="priority-tag priority-high">Высокий</span>
+                            {% endif %}
+                            {% if issue.priority == 5 %}
+                                <span class="priority-tag priority-urgent">Наивысший</span>
+                            {% endif %}
+                            {% if issue.priority == 11 %}
+                                <span class="priority-tag priority-emergency">Аварийный</span>
+                            {% endif %}
+                            
+                            <span class="status-tag">{{ issue.status }}</span>
+                            
+                            <div class="issue-subject">{{issue.subject}}</div>
+                            <div class="issue-assignee">Назначена: <strong>{{issue.assigned_to}}</strong></div>
+                        </li>
+                        {% endfor %}
+                    </ul>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        
+        <div class="card" style="margin-bottom: 20px;">
+            <div class="card-header">
+                <h2 class="card-title">Динамика поступления тикетов</h2>
+            </div>
+            <div class="card-body">
+                <div class="chart-container">
+                    <canvas id="ticket6-chart"></canvas>
+                </div>
+            </div>
+        </div>
+        
+        <div class="grid">
+            <div class="card">
+                <div class="card-header">
+                    <h2 class="card-title">Количество выполненных тикетов</h2>
+                </div>
+                <div class="card-body">
+                    <div class="chart-container">
+                        <canvas id="ticket2-chart"></canvas>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="card">
+                <div class="card-header">
+                    <h2 class="card-title">Трудозатраты (часы)</h2>
+                </div>
+                <div class="card-body">
+                    <div class="chart-container">
+                        <canvas id="ticket4-chart"></canvas>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="card">
+                <div class="card-header">
+                    <h2 class="card-title">Тикетов в работе</h2>
+                </div>
+                <div class="card-body">
+                    <div class="chart-container">
+                        <canvas id="ticket5-chart"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Заголовок "Выполненные тикеты" -->
+        <div class="completed-tickets-header">
+            <div class="header-title">
+                <i class="fas fa-check-circle"></i>
+                <h2>Выполненные тикеты</h2>
+            </div>
+            <div class="header-count">Всего: {{issues|length}}</div>
+        </div>
+
+        <!-- Список пользователей с задачами -->
+        <div class="users-container">
+            {% for user in users %}
+            <div class="user-card">
+                <div class="user-header" onclick="toggleUserIssues(this, 'user-{{user.id}}')">
+                    <div class="user-info">
+                        <span class="user-name">{{user.lastname}} {{user.firstname}}</span>
+                        <span class="user-count">{{user.count_tickets}} тикетов</span>
+                    </div>
+                    <i class="fas fa-chevron-down toggle-icon"></i>
+                </div>
+                
+                <div class="user-issues" id="user-{{user.id}}">
+                    <ul class="issues-list">
+                        {% for issue in issues %}
+                            {% for custom_field in issue['custom_fields'] %}
+                                {% if custom_field.name == "Ответственный" %}
+                                    {% if custom_field.value == user.id|string %}
+                                    <li class="issue-item">
+                                        <a href="https://helpdesk.fenix-it.ru/issues/{{issue.id}}" target="_blank" class="issue-link">#{{issue.id}}</a>
+                                        
+                                        {% if issue.priority == 4 %}
+                                            <span class="priority-tag priority-minimal">Минимальный</span>
+                                        {% endif %}
+                                        {% if issue.priority == 1 %}
+                                            <span class="priority-tag priority-low">Низкий</span>
+                                        {% endif %}
+                                        {% if issue.priority == 2 %}
+                                            <span class="priority-tag priority-medium">Средний</span>
+                                        {% endif %}
+                                        {% if issue.priority == 3 %}
+                                            <span class="priority-tag priority-high">Высокий</span>
+                                        {% endif %}
+                                        {% if issue.priority == 5 %}
+                                            <span class="priority-tag priority-urgent">Наивысший</span>
+                                        {% endif %}
+                                        {% if issue.priority == 11 %}
+                                            <span class="priority-tag priority-emergency">Аварийный</span>
+                                        {% endif %}
+                                        
+                                        <div class="issue-subject">{{issue.subject}}</div>
+                                    </li>
+                                    {% endif %}
+                                {% endif %}
+                            {% endfor %}
+                        {% endfor %}
+                    </ul>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+    
+    <!-- Кнопка активации рисования -->
+    <div id="draw-mode-btn" style="position:fixed; bottom:20px; right:20px; width:50px; height:50px; background:#4361ee; border-radius:50%; display:flex; align-items:center; justify-content:center; color:white; font-size:20px; cursor:pointer; z-index:9998; box-shadow:0 2px 10px rgba(0,0,0,0.2); user-select:none;">
+        ✏️
+    </div>
+
+    <!-- Панель инструментов -->
+    <div id="draw-tools" style="display:none; position:fixed; bottom:80px; right:20px; background:white; border-radius:12px; padding:10px; box-shadow:0 4px 20px rgba(0,0,0,0.15); z-index:9999;">
+        <div style="display:flex; gap:8px; margin-bottom:10px;">
+            <button data-color="#4361ee" style="width:25px; height:25px; border-radius:50%; background:#4361ee; border:none; cursor:pointer;"></button>
+            <button data-color="#f72585" style="width:25px; height:25px; border-radius:50%; background:#f72585; border:none; cursor:pointer;"></button>
+            <button data-color="#4cc9f0" style="width:25px; height:25px; border-radius:50%; background:#4cc9f0; border:none; cursor:pointer;"></button>
+            <button data-color="#3a0ca3" style="width:25px; height:25px; border-radius:50%; background:#3a0ca3; border:none; cursor:pointer;"></button>
+            <button data-color="#43aa8b" style="width:25px; height:25px; border-radius:50%; background:#43aa8b; border:none; cursor:pointer;"></button>
+        </div>
+        <div style="display:flex; gap:8px;">
+            <button data-size="3" style="width:30px; height:25px; border-radius:4px; background:#eee; border:1px solid #ddd; cursor:pointer;">3</button>
+            <button data-size="8" style="width:30px; height:25px; border-radius:4px; background:#eee; border:1px solid #ddd; cursor:pointer;">8</button>
+            <button data-size="15" style="width:30px; height:25px; border-radius:4px; background:#eee; border:1px solid #ddd; cursor:pointer;">15</button>
+        </div>
+        <button id="clear-drawing" style="margin-top:10px; padding:5px 10px; background:#f72585; color:white; border:none; border-radius:4px; width:100%; cursor:pointer;">Очистить</button>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@3.7.1/dist/chart.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.0.0"></script>
+    <script>
+
+        // Toggle issues visibility
+        function toggleIssues(id) {
+            const content = document.getElementById(id);
+            content.style.maxHeight = content.style.maxHeight ? null : content.scrollHeight + "px";
+        }
+
+        function toggleUserIssues(header, id) {
+            const content = document.getElementById(id);
+            if (content.classList.contains('active')) {
+                content.style.maxHeight = null;
+            } else {
+                content.style.maxHeight = content.scrollHeight + "px";
+            }
+            content.classList.toggle('active');
+            
+            const icon = header.querySelector('.toggle-icon');
+            icon.style.transform = content.classList.contains('active') ? 'rotate(180deg)' : 'rotate(0)';
+        }
+
+        function toggleProjectIssues(header, id) {
+            const content = document.getElementById(id);
+            content.classList.toggle('active');
+            
+            const icon = header.querySelector('.toggle-icon');
+            icon.style.transform = content.classList.contains('active') ? 'rotate(180deg)' : 'rotate(0)';
+        }
+
+        // По умолчанию раскрываем все списки задач
+        document.addEventListener('DOMContentLoaded', function() {
+            document.querySelectorAll('.user-issues').forEach(el => {
+                el.classList.remove('active');
+            });
+        });
+
+        // Chart data and configurations
+        const issueses = {{ issues_closed + issues_open_count }};
+        const ticketsClosed = {{ tickets_closed }};
+        const usersData = {{ users | tojson }};
+        const issuesStatuses = {{ issues_per_open | tojson }};
+        const ticketsDataOnWeek = {{ tickets_data_on_week | tojson }};
+        
+        // Helper function to generate random colors
+        function getChartColor(opacity = 1) {
+            const colors = [
+                '#4361ee', '#3f37c9', '#4895ef', '#4cc9f0', 
+                '#f72585', '#b5179e', '#7209b7', '#560bad',
+                '#480ca8', '#3a0ca3', '#3f37c9', '#4361ee',
+                '#4895ef', '#4cc9f0', '#4895ef', '#4361ee'
+            ];
+            return colors;
+        }
+        
+        // Chart 1: Pie chart for closed and received tickets
+        new Chart(
+            document.getElementById('ticket-chart').getContext('2d'),
+            {
+                type: 'doughnut',
+                data: {
+                    labels: ['Поступившие тикеты', 'Закрытые тикеты'],
+                    datasets: [{
+                        data: [issueses, ticketsClosed],
+                        backgroundColor: ['#4cc9f0', '#4361ee'],
+                        borderWidth: 2,
+                        datalabels: {
+                            anchor: 'end'
+                    }
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        datalabels: {
+                            backgroundColor: function(context) {
+                                return context.dataset.backgroundColor;
+                            },
+                            borderColor: 'white',
+                            borderRadius: 25,
+                            borderWidth: 2,
+                            color: 'white',
+                            display: function(context) {
+                                var dataset = context.dataset;
+                                var count = dataset.data.length;
+                                var value = dataset.data[context.dataIndex];
+                                return value > count * 1.5;
+                            },
+                            font: {
+                                weight: 'bold'
+                            },
+                            padding: 6
+                        },
+                    },
+                    cutout: '70%',
+                    animation: {
+                        animateScale: true,
+                        animateRotate: true
+                    }
+                },
+                plugins: [ChartDataLabels]
+            }
+        );
+
+        const verticalCtx2 = document.getElementById('ticket2-chart').getContext('2d');
+        verticalCtx2.canvas.classList.add('bar-chart-vertical');
+        
+        // Chart 2: Bar chart for tickets per user
+        new Chart(
+            document.getElementById('ticket2-chart').getContext('2d'),
+            {
+                type: 'bar',
+                data: {
+                    labels: usersData.map(user => `${user.lastname} ${user.firstname}`),
+                    datasets: [{
+                        label: 'Количество тикетов',
+                        data: usersData.map(user => user.count_tickets),
+                        backgroundColor: getChartColor(0.7),
+                        borderWidth: 1,
+                        datalabels: {
+                            anchor: 'end', // Привязка меток к точке (начало, конец или центр)
+                            align: function(context) {
+                                return context.dataset.data[context.dataIndex] <= 1 ? 'top' : 'bottom';
+                            },
+                        }
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        datalabels: {
+                            color: function(context) {
+                                // Чёрный для 1, белый для остальных
+                                return context.dataset.data[context.dataIndex] <= 1 ? '#777777' : '#ffffff';
+                            },
+                            font: {
+                                weight: 'bold'
+                            },
+                            formatter: Math.round, // Округление значений
+                            padding: 6, // Внутренний отступ метки
+                        },
+                        legend: {
+                            display: false  // отображение легенды
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            ticks: {
+                                font: {
+                                    size: 12
+                                }
+                            },
+                            grid: {
+                                drawBorder: false
+                            }
+                        },
+                        x: {
+                            ticks: {
+                                font: {
+                                    size: 12
+                                }
+                            },
+                            grid: {
+                                display: false
+                            }
+                        }
+                    },
+                    elements: {
+                        bar: {
+                            borderRadius: 4  // скругление углов колонок
+                        }
+                    }
+                },
+                plugins: [ChartDataLabels]
+            }
+        );
+
+        const verticalCtx3 = document.getElementById('ticket3-chart').getContext('2d');
+        verticalCtx3.canvas.classList.add('bar-chart-vertical');
+        
+        // Chart 3: Bar chart for open tickets by status
+        new Chart(
+            document.getElementById('ticket3-chart').getContext('2d'),
+            {
+                type: 'bar',
+                data: {
+                    labels: Object.keys(issuesStatuses),
+                    datasets: [{
+                        label: 'Количество тикетов',
+                        data: Object.values(issuesStatuses),
+                        backgroundColor: getChartColor(0.7),
+                        borderWidth: 1,
+                        datalabels: {
+                            anchor: 'end', // Привязка меток к точке (начало, конец или центр)
+                            align: function(context) {
+                                return context.dataset.data[context.dataIndex] <= 5 ? 'top' : 'bottom';
+                            },
+                        }
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        datalabels: {
+                            color: function(context) {
+                                // Чёрный для 1, белый для остальных
+                                return context.dataset.data[context.dataIndex] <= 5 ? '#777777' : '#ffffff';
+                            },
+                            font: {
+                                weight: 'bold'
+                            },
+                            formatter: Math.round, // Округление значений
+                            padding: 6, // Внутренний отступ метки
+                        },
+                        legend: {
+                            display: false  // отображение легенды
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            ticks: {
+                                font: {
+                                    size: 12
+                                }
+                            },
+                            grid: {
+                                drawBorder: false
+                            }
+                        },
+                        x: {
+                            ticks: {
+                                font: {
+                                    size: 12
+                                }
+                            },
+                            grid: {
+                                display: false
+                            }
+                        }
+                    },
+                    elements: {
+                        bar: {
+                            borderRadius: 4  // скругление углов колонок
+                        }
+                    }
+                },
+                plugins: [ChartDataLabels]
+            }
+        );
+
+        const horizontalCtx4 = document.getElementById('ticket4-chart').getContext('2d');
+        horizontalCtx4.canvas.classList.add('bar-chart-horizontal');
+        
+        // Chart 4: Horizontal bar chart for time spent
+        new Chart(
+            document.getElementById('ticket4-chart').getContext('2d'),
+            {
+                type: 'bar',
+                data: {
+                    labels: usersData.map(user => `${user.lastname} ${user.firstname}`),
+                    datasets: [{
+                        label: 'Трудозатраты (часы)',
+                        data: usersData.map(user => parseFloat(user.time_entries.toFixed(2))),
+                        backgroundColor: getChartColor(0.7),
+                        borderWidth: 1,
+                        datalabels: {
+                            anchor: 'end', // Привязка меток к точке (начало, конец или центр)
+                            align: function(context) {
+                                return context.dataset.data[context.dataIndex] <= 3 ? 'right' : 'left';
+                            },
+                        }
+                    }]
+                },
+                options: {
+                    indexAxis: 'y',
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        datalabels: {
+                            color: function(context) {
+                                // Чёрный для 1, белый для остальных
+                                return context.dataset.data[context.dataIndex] <= 3 ? '#777777' : '#ffffff';
+                            },
+                            font: {
+                                weight: 'bold' // Жирный шрифт
+                            },
+                            padding: 6, // Внутренний отступ метки
+                        },
+                        legend: {
+                            display: false  // отображение легенды
+                        }
+                    },
+                    scales: {
+                        x: {
+                            beginAtZero: true,
+                            ticks: {
+                                font: {
+                                    size: 12
+                                }
+                            },
+                            grid: {
+                                drawBorder: false
+                            }
+                        },
+                        y: {
+                            ticks: {
+                                font: {
+                                    size: 12
+                                }
+                            },
+                            grid: {
+                                display: false
+                            }
+                        }
+                    },
+                    elements: {
+                        bar: {
+                            borderRadius: 4  // скругление углов колонок
+                        }
+                    }
+                },
+                plugins: [ChartDataLabels]
+            }
+        );
+
+        const verticalCtx5 = document.getElementById('ticket5-chart').getContext('2d');
+        verticalCtx5.canvas.classList.add('bar-chart-vertical');
+        
+        // Chart 5: Bar chart for current tickets
+        new Chart(
+            document.getElementById('ticket5-chart').getContext('2d'),
+            {
+                type: 'bar',
+                data: {
+                    labels: usersData.map(user => `${user.lastname} ${user.firstname}`),
+                    datasets: [{
+                        label: 'Тикетов в работе',
+                        data: usersData.map(user => user.current_tickets_count),
+                        backgroundColor: getChartColor(0.7),
+                        borderWidth: 1,
+                        datalabels: {
+                            anchor: 'end', // Привязка меток к точке (начало, конец или центр)
+                            align: function(context) {
+                                return context.dataset.data[context.dataIndex] <= 1 ? 'top' : 'bottom';
+                            },
+                        }
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        datalabels: {
+                            color: function(context) {
+                                // Чёрный для 1, белый для остальных
+                                return context.dataset.data[context.dataIndex] <= 1 ? '#777777' : '#ffffff';
+                            },
+                            font: {
+                                weight: 'bold' // Жирный шрифт
+                            },
+                            formatter: Math.round, // Округление значений
+                            padding: 6, // Внутренний отступ метки
+                        },
+                        legend: {
+                            display: false  // отображение легенды
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            ticks: {
+                                font: {
+                                    size: 12
+                                }
+                            },
+                            grid: {
+                                drawBorder: false
+                            }
+                        },
+                        x: {
+                            ticks: {
+                                font: {
+                                    size: 12
+                                }
+                            },
+                            grid: {
+                                display: false
+                            }
+                        }
+                    },
+                    layout: {
+                        padding: {
+                            top: 24,
+                            right: 16,
+                            bottom: 0,
+                            left: 8
+                        }
+                    },
+                    elements: {
+                        bar: {
+                            borderRadius: 4  // скругление углов колонок
+                        }
+                    }
+                },
+                plugins: [ChartDataLabels]
+            }
+        );
+
+        const verticalCtx6 = document.getElementById('ticket6-chart').getContext('2d');
+        verticalCtx6.canvas.classList.add('bar-chart-vertical');
+        
+        // Chart 6: Line chart for tickets dynamics
+        const weekDays = ["Понедельник", "Вторник", "Среда", "Четверг", "Пятница", "Суббота", "Воскресенье"];
+        const weekData = weekDays.map(day => ticketsDataOnWeek[day] || 0);
+        
+        new Chart(
+            document.getElementById('ticket6-chart').getContext('2d'),
+            {
+                type: 'line',
+                data: {
+                    labels: weekDays,
+                    datasets: [{
+                        label: 'Количество тикетов',
+                        data: weekData,
+                        backgroundColor: 'rgba(67, 97, 238, 0.1)',
+                        borderColor: '#4361ee',
+                        borderWidth: 3,
+                        tension: 0.3,
+                        fill: true,
+                        pointBackgroundColor: '#fff',
+                        pointBorderColor: '#4361ee',
+                        pointBorderWidth: 2,
+                        pointRadius: 5,
+                        pointHoverRadius: 7,
+                        datalabels: {
+                            align: 'center', // Выравнивание меток (начало, конец или центр)
+                            anchor: 'end' // Привязка меток к точке (начало, конец или центр)
+                        }
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        datalabels: {
+                            backgroundColor: function(context) {
+                                return context.dataset.borderColor; // Используем цвет фона границы из датасета
+                            },
+                            borderRadius: 4, // Закругление углов фона метки
+                            color: 'white', // Цвет текста метки
+                            font: {
+                                weight: 'bold' // Жирный шрифт
+                            },
+                            formatter: Math.round, // Округление значений
+                            padding: 6, // Внутренний отступ метки
+                            display: function(context) {
+                                return context.dataset.data[context.dataIndex] > 0; // Показывать только ненулевые значения
+                            }
+                        },
+                        legend: {
+                            display: false  // отображение легенды
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            stacked: true, // Стекаемые оси Y (если нужно)
+                            ticks: {
+                                font: {
+                                    size: 12
+                                }
+                            },
+                            grid: {
+                                drawBorder: false
+                            }
+                        },
+                        x: {
+                            ticks: {
+                                font: {
+                                    size: 12
+                                }
+                            },
+                            grid: {
+                                display: false
+                            }
+                        }
+                    },
+                    layout: {
+                        padding: {
+                            top: 32,
+                            right: 16,
+                            bottom: 16,
+                            left: 8
+                        }
+                    },
+                    elements: {
+                        line: {
+                            fill: false,
+                            tension: 0.4
+                        }
+                    }
+                },
+                plugins: [ChartDataLabels]
+            }
+        );
+
+        // Настройки рисования
+        let isDrawing = false;
+        let currentColor = '#4361ee';
+        let currentSize = 5;
+        let paths = [];
+        let currentPath = [];
+        let canvas, ctx;
+        let scrollY = window.scrollY;
+
+        // Элементы интерфейса
+        const drawBtn = document.getElementById('draw-mode-btn');
+        const drawTools = document.getElementById('draw-tools');
+        const clearBtn = document.getElementById('clear-drawing');
+
+        // Активация/деактивация режима рисования
+        drawBtn.addEventListener('click', function() {
+            if (canvas) {
+                // Деактивация
+                document.body.removeChild(canvas);
+                canvas = null;
+                drawTools.style.display = 'none';
+                drawBtn.innerHTML = '✏️';
+                drawBtn.style.backgroundColor = '#4361ee';
+                document.body.style.cursor = '';
+            } else {
+                // Активация
+                createCanvas();
+                drawTools.style.display = 'block';
+                drawBtn.innerHTML = '🚫';
+                drawBtn.style.backgroundColor = '#f72585';
+                document.body.style.cursor = 'crosshair';
+            }
+        });
+
+        // Создание canvas поверх всего сайта
+        function createCanvas() {
+            canvas = document.createElement('canvas');
+            canvas.style.position = 'absolute'; // Изменено с fixed на absolute
+            canvas.style.top = '0';
+            canvas.style.left = '0';
+            canvas.style.width = '100%';
+            canvas.style.height = document.documentElement.scrollHeight + 'px'; // Полная высота документа
+            canvas.style.zIndex = '9997';
+            canvas.style.pointerEvents = 'none';
+            canvas.width = window.innerWidth;
+            canvas.height = document.documentElement.scrollHeight;
+            
+            document.body.appendChild(canvas);
+            ctx = canvas.getContext('2d');
+            ctx.lineCap = 'round';
+            ctx.lineJoin = 'round';
+        }
+
+        // Очистка рисунка
+        clearBtn.addEventListener('click', function() {
+            if (canvas) {
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+                paths = [];
+            }
+        });
+
+        // Выбор цвета
+        document.querySelectorAll('[data-color]').forEach(btn => {
+            btn.addEventListener('click', function() {
+                currentColor = this.getAttribute('data-color');
+            });
+        });
+
+        // Выбор размера
+        document.querySelectorAll('[data-size]').forEach(btn => {
+            btn.addEventListener('click', function() {
+                currentSize = parseInt(this.getAttribute('data-size'));
+            });
+        });
+
+        // Обработка рисования с учетом скролла
+        window.addEventListener('mousedown', startDrawing);
+        window.addEventListener('mousemove', draw);
+        window.addEventListener('mouseup', stopDrawing);
+        window.addEventListener('resize', resizeCanvas);
+        window.addEventListener('scroll', handleScroll);
+
+        function startDrawing(e) {
+            if (!canvas) return;
+            
+            isDrawing = true;
+            currentPath = [{
+                x: e.clientX,
+                y: e.clientY + scrollY, // Учитываем скролл
+                color: currentColor,
+                size: currentSize
+            }];
+            paths.push(currentPath);
+            
+            // Начинаем новый путь
+            ctx.beginPath();
+            ctx.moveTo(e.clientX, e.clientY + scrollY);
+            ctx.lineWidth = currentSize;
+            ctx.strokeStyle = currentColor;
+        }
+
+        function draw(e) {
+            if (!isDrawing || !canvas) return;
+            
+            // Добавляем точку в текущий путь с учетом скролла
+            currentPath.push({
+                x: e.clientX,
+                y: e.clientY + scrollY,
+                color: currentColor,
+                size: currentSize
+            });
+            
+            // Рисуем линию
+            ctx.lineTo(e.clientX, e.clientY + scrollY);
+            ctx.stroke();
+        }
+
+        function stopDrawing() {
+            if (!canvas) return;
+            isDrawing = false;
+        }
+
+        // Обработка скролла
+        function handleScroll() {
+            scrollY = window.scrollY;
+            if (canvas) {
+                // При скролле перерисовываем canvas с новым offset
+                redrawAllPaths();
+            }
+        }
+
+        // Реакция на изменение размера окна
+        function resizeCanvas() {
+            if (!canvas) return;
+            
+            // Сохраняем текущий рисунок
+            const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+            
+            // Изменяем размер canvas
+            canvas.width = window.innerWidth;
+            canvas.height = document.documentElement.scrollHeight;
+            
+            // Восстанавливаем рисунок
+            ctx.putImageData(imageData, 0, 0);
+            
+            // Перерисовываем все пути
+            redrawAllPaths();
+        }
+
+        // Перерисовка всех сохраненных путей
+        function redrawAllPaths() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            
+            paths.forEach(path => {
+                if (path.length === 0) return;
+                
+                ctx.beginPath();
+                ctx.moveTo(path[0].x, path[0].y);
+                ctx.lineWidth = path[0].size;
+                ctx.strokeStyle = path[0].color;
+                
+                for (let i = 1; i < path.length; i++) {
+                    ctx.lineTo(path[i].x, path[i].y);
+                    ctx.lineWidth = path[i].size;
+                    ctx.strokeStyle = path[i].color;
+                }
+                
+                ctx.stroke();
+            });
+        }
+
+        // Поддержка сенсорных устройств
+        window.addEventListener('touchstart', handleTouchStart, {passive: false});
+        window.addEventListener('touchmove', handleTouchMove, {passive: false});
+        window.addEventListener('touchend', handleTouchEnd);
+
+        function handleTouchStart(e) {
+            if (!canvas) return;
+            e.preventDefault();
+            const touch = e.touches[0];
+            const mouseEvent = new MouseEvent('mousedown', {
+                clientX: touch.clientX,
+                clientY: touch.clientY
+            });
+            startDrawing(mouseEvent);
+        }
+
+        function handleTouchMove(e) {
+            if (!canvas) return;
+            e.preventDefault();
+            const touch = e.touches[0];
+            const mouseEvent = new MouseEvent('mousemove', {
+                clientX: touch.clientX,
+                clientY: touch.clientY
+            });
+            draw(mouseEvent);
+        }
+
+        function handleTouchEnd() {
+            if (!canvas) return;
+            const mouseEvent = new MouseEvent('mouseup');
+            stopDrawing(mouseEvent);
+        }
+    </script>
+
+</body>
+</html>
